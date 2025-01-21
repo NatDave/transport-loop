@@ -7,7 +7,7 @@
     <script src="https://cdn.plotly.com/plotly-latest.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script defer src="scripts.js"></script>
+    <script src="script.js" defer></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +40,6 @@
         <input type="number" id="N" name="N" required><br>
         <label for="i">Start of the segment (i):</label>
         <input type="number" id="i" name="i" required><br>
-        <p><b>End of the segment (j):</b> <span id="j"></span></p>
         <label for="direction">Direction:</label>
         <select id="direction" name="direction">
             <option value="clockwise">Clockwise</option>
@@ -51,10 +50,15 @@
 
     <div class="output">
         <h2>Results:</h2>
+        <p><b>End of the segment (j):</b> <span id="j"></span></p>
         <p><b>Formula:</b> <span id="formula"></span></p>
         <p><b>Interpretation:</b> <span id="interpretation"></span></p>
         <p><b>Explanation (Circular Public Transport Context):</b></p>
         <p id="explanation"></p>
+        <p><b>How to Determine Trips Crossing the Segment:</b></p>
+        <ul id="steps"></ul>
+        <p><b>Example:</b></p>
+        <p id="example"></p>
         <p><b>Trips Crossing Segment:</b> <span id="trips"></span></p>
         <h3>Origin-Destination Matrix:</h3>
         <div id="matrix"></div>
