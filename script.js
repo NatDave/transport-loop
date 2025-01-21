@@ -1,7 +1,6 @@
-document.getElementById("input-form").addEventListener("submit", function (e) {
+document.getElementById("form").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    // Get input values
     const N = parseInt(document.getElementById("N").value);
     const i = parseInt(document.getElementById("i").value);
     const direction = document.getElementById("direction").value;
@@ -16,6 +15,7 @@ document.getElementById("input-form").addEventListener("submit", function (e) {
     } else if (direction === "counterclockwise") {
         j = ((normalizedI - 2 + N) % N) + 1;
     }
+    document.getElementById("j").innerText = j;
 
     // Calculate trips crossing the segment
     const trips = [];
@@ -48,14 +48,31 @@ document.getElementById("input-form").addEventListener("submit", function (e) {
     // Display trips
     document.getElementById("trips").textContent = JSON.stringify(trips);
 
-    // Create and display matrix
+    // Create the matrix
     const matrix = Array.from({ length: N }, () => Array(N).fill(0));
     trips.forEach(([k, m]) => {
         matrix[k - 1][m - 1] = 1;
     });
 
+    // Display the matrix
     const matrixDiv = document.getElementById("matrix");
     matrixDiv.innerHTML = createMatrixTable(matrix);
+
+    // Explanation
+    document.getElementById("formula").innerText =
+        "Trips crossing segment i -> j: {(k, m) | k ≠ m, ∃s ∈ path(k → m), s = i and (s+1) ≡ j (mod N)}";
+    document.getElementById("interpretation").innerText =
+        "A trip (k, m) crosses the segment i -> j if there exists a stop s in the circular path from k to m such that s = i and (s+1) = j.";
+    document.getElementById("explanation").innerText =
+        `Imagine a circular bus route with ${N} stops. The segment crossing trips are calculated based on the direction: ${direction}.`;
+    document.getElementById("steps").innerHTML = `
+        <li>Trips are defined as (k, m), where k is the origin and m is the destination.</li>
+        <li>The segment i -> j depends on the chosen direction.</li>
+    `;
+    document.getElementById("example").innerText =
+        `Example: For N = ${N}, i = ${i}, direction = ${direction}, the trips crossing segment are calculated as shown in the matrix.`;
+
+    MathJax.typeset();
 });
 
 function createMatrixTable(matrix) {
