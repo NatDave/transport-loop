@@ -83,8 +83,27 @@ document.getElementById("form").addEventListener("submit", function (e) {
     const table = document.createElement("table");
     table.style.borderCollapse = "collapse";
 
+    // Create table header with stop names
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(document.createElement("th")); // Top-left empty cell
+    for (let stop = 1; stop <= N; stop++) {
+        const th = document.createElement("th");
+        th.innerText = `Stop ${stop}`;
+        th.style.padding = "5px";
+        th.style.border = "1px solid black";
+        headerRow.appendChild(th);
+    }
+    table.appendChild(headerRow);
+
+    // Create table rows with stop names on the left
     for (let row = 0; row < N; row++) {
         const tr = document.createElement("tr");
+        const rowHeader = document.createElement("th");
+        rowHeader.innerText = `Stop ${row + 1}`;
+        rowHeader.style.padding = "5px";
+        rowHeader.style.border = "1px solid black";
+        tr.appendChild(rowHeader);
+
         for (let col = 0; col < N; col++) {
             const td = document.createElement("td");
             td.style.width = "20px";
