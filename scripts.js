@@ -1,42 +1,34 @@
-document.getElementById("form").addEventListener("submit", function (e) {
-    e.preventDefault();
+// Function to calculate trips crossing a segment (i → j)
+function tripsCrossingSegment(N, i, direction) {
+    // Normalize i to ensure it's within range [1, N]
+    i = ((i - 1) % N) + 1;
 
-    const N = parseInt(document.getElementById("N").value);
-    const i = parseInt(document.getElementById("i").value);
-    const direction = document.getElementById("direction").value;
-
-    // Normalize i
-    const normalizedI = ((i - 1) % N) + 1;
-
-    // Calculate j
     let j;
+    let extendedStops = [];
+
+    // Determine j and extended stops based on direction
     if (direction === "clockwise") {
-        j = (normalizedI % N) + 1;
+        j = (i % N) + 1;
+        extendedStops = [...Array(N).keys()].map(x => x + 1).concat([...Array(N).keys()].map(x => x + 1)); // [1, 2, ..., N, 1, 2, ..., N]
     } else if (direction === "counterclockwise") {
-        j = ((normalizedI - 2 + N) % N) + 1;
+        j = ((i - 2 + N) % N) + 1;
+        extendedStops = [...Array(N).keys()].map(x => N - x).concat([...Array(N).keys()].map(x => N - x)); // [N, N-1, ..., 1, N, N-1, ..., 1]
+    } else {
+        throw new Error("Invalid direction. Must be 'clockwise' or 'counterclockwise'.");
     }
-    document.getElementById("j").innerText = j;
 
-    // Calculate trips crossing the segment
-    const trips = [];
-    const extendedStops = [...Array(N).keys()].map(x => x + 1).concat(
-        [...Array(N).keys()].map(x => x + 1)
-    );
+    let trips = [];
 
-    for (let k = 1; k <= N; k++) {
-        for (let m = 1; m <= N; m++) {
-            if (k !== m) {
-                let startIdx, endIdx;
-                if (direction === "clockwise") {
-                    startIdx = extendedStops.indexOf(k);
-                    endIdx = extendedStops.indexOf(m, startIdx);
-                } else {
-                    startIdx = extendedStops.lastIndexOf(k);
-                    endIdx = extendedStops.lastIndexOf(m, startIdx);
-                }
+    // Calculate trips
+    for (let k = 1; k <= N; k++) { // Origin stop
+        for (let m = 1; m <= N; m++) { // Destination stop
+            if (k !== m) { // Exclude trips where origin == destination
+                const startIdx = extendedStops.indexOf(k);
+                const endIdx = extendedStops.indexOf(m, startIdx);
 
+                // Traverse the loop to check if the segment i → j is crossed
                 for (let idx = startIdx; idx < endIdx; idx++) {
-                    if (extendedStops[idx] === normalizedI && extendedStops[idx + 1] === j) {
+                    if (extendedStops[idx] === i && extendedStops[idx + 1] === j) {
                         trips.push([k, m]);
                         break;
                     }
@@ -45,50 +37,67 @@ document.getElementById("form").addEventListener("submit", function (e) {
         }
     }
 
-    // Display trips
-    document.getElementById("trips").textContent = JSON.stringify(trips);
+    return { trips, j };
+}
 
-    // Create the matrix
+// Event listener for the form
+document.getElementById("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Get user input
+    const N = parseInt(document.getElementById("N").value);
+    const i = parseInt(document.getElementById("i").value);
+    const direction = document.getElementById("direction").value;
+
+    // Calculate trips and segment endpoint j
+    const { trips, j } = tripsCrossingSegment(N, i, direction);
+
+    // Display calculated j
+    document.getElementById("j").innerText = j;
+
+    // Display trips in LaTeX format
+    const tripsLatex = trips.map(([k, m]) => `(${k}, ${m})`).join(", ");
+    document.getElementById("trips").innerHTML = `\\[ \\{ ${tripsLatex} \\} \\]`;
+
+    // Display formula and interpretation
+    document.getElementById("formula").innerHTML = `
+        \\[
+        \\text{Trips crossing segment } i \\to j: \\{ (k, m) \\mid k \\neq m, \\exists s \\in \\text{path}(k \\to m), s = i, (s+1) \\equiv j \\,(\\text{mod } N) \\}.
+        \\]
+    `;
+    document.getElementById("interpretation").innerHTML = `
+        \\[
+        \\text{A trip (k, m) crosses the segment } i \\to j \\text{ if there exists a stop } s \\text{ in the circular path from } k \\to m \\text{ such that } s = i \\text{ and } (s+1) = j.
+        \\]
+    `;
+
+    // Generate a color-coded matrix for visualization
     const matrix = Array.from({ length: N }, () => Array(N).fill(0));
     trips.forEach(([k, m]) => {
-        matrix[k - 1][m - 1] = 1;
+        matrix[k - 1][m - 1] = 1; // Mark the trip in the matrix
     });
 
-    // Display the matrix
-    const matrixDiv = document.getElementById("matrix");
-    matrixDiv.innerHTML = createMatrixTable(matrix);
+    // Render the matrix
+    const matrixContainer = document.getElementById("matrix");
+    matrixContainer.innerHTML = ""; // Clear previous matrix
+    const table = document.createElement("table");
+    table.style.borderCollapse = "collapse";
 
-    // Explanation
-    document.getElementById("formula").innerText =
-        "Trips crossing segment i -> j: {(k, m) | k ≠ m, ∃s ∈ path(k → m), s = i and (s+1) ≡ j (mod N)}";
-    document.getElementById("interpretation").innerText =
-        "A trip (k, m) crosses the segment i -> j if there exists a stop s in the circular path from k to m such that s = i and (s+1) = j.";
-    document.getElementById("explanation").innerText =
-        `Imagine a circular bus route with ${N} stops. The segment crossing trips are calculated based on the direction: ${direction}.`;
-    document.getElementById("steps").innerHTML = `
-        <li>Trips are defined as (k, m), where k is the origin and m is the destination.</li>
-        <li>The segment i -> j depends on the chosen direction.</li>
-    `;
-    document.getElementById("example").innerText =
-        `Example: For N = ${N}, i = ${i}, direction = ${direction}, the trips crossing segment are calculated as shown in the matrix.`;
+    for (let row = 0; row < N; row++) {
+        const tr = document.createElement("tr");
+        for (let col = 0; col < N; col++) {
+            const td = document.createElement("td");
+            td.style.width = "20px";
+            td.style.height = "20px";
+            td.style.border = "1px solid black";
+            td.style.backgroundColor = matrix[row][col] === 1 ? "lightblue" : "white";
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
 
+    matrixContainer.appendChild(table);
+
+    // Re-render MathJax
     MathJax.typeset();
 });
-
-function createMatrixTable(matrix) {
-    let html = "<table><tr><th></th>";
-    for (let i = 0; i < matrix.length; i++) {
-        html += `<th>${i + 1}</th>`;
-    }
-    html += "</tr>";
-
-    for (let i = 0; i < matrix.length; i++) {
-        html += `<tr><th>${i + 1}</th>`;
-        for (let j = 0; j < matrix[i].length; j++) {
-            html += `<td>${matrix[i][j] ? "■" : ""}</td>`;
-        }
-        html += "</tr>";
-    }
-    html += "</table>";
-    return html;
-}
