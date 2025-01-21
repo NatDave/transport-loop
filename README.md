@@ -14,4 +14,4 @@ A simple, user-friendly web app to analyze trips crossing specific segments in a
 ## How to Run Locally
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/circular-loop-trip-analyzer.git
+   git clone https://github.com/natdave/transport-loop.git
