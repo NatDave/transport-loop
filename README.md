@@ -15,3 +15,5 @@ A simple, user-friendly web app to analyze trips crossing specific segments in a
 1. Clone the repository:
    ```bash
    git clone https://github.com/natdave/transport-loop.git
+
+Access the web app via natdave.github.io/transport-loop.
